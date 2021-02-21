@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "songs")
+@SecondaryTable(name = "Lyrics")
 public class Song {
 
     @Id
@@ -38,6 +39,9 @@ public class Song {
 
     @Column(nullable = false)
     private Instant releaseDate;
+
+    @Column(table = "lyrics")
+    private String lyrics;
 
     public Song(String name, Author author, Integer duration, Instant releaseDate) {
         this.name = name;
@@ -98,6 +102,14 @@ public class Song {
         this.album = album;
     }
 
+    public String getLyrics() {
+        return lyrics;
+    }
+
+    public void setLyrics(String lyrics) {
+        this.lyrics = lyrics;
+    }
+
     @Override
     public String toString() {
         DateTimeFormatter formatter =
@@ -110,6 +122,7 @@ public class Song {
                 ", album = " + album.stream().map(Album::getName).collect(Collectors.toList()) +
                 ", duration = " + getDurationString() +
                 ", release date = " + formatter.format(releaseDate) +
+                ", lyrics = " + lyrics +
                 '}';
     }
 }

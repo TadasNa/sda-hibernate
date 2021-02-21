@@ -1,42 +1,30 @@
 package sda.db.hibernate.entity;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import java.util.UUID;
+import sda.db.hibernate.entity.util.BaseEntity;
+
+import javax.persistence.*;
 
 @Entity
 @Table(name = "authors")
-public class Author {
-
-    @Id
-    @GeneratedValue
-    private UUID id;
-
-    private String name;
+public class Author extends BaseEntity {
 
 
-    public UUID getId() {
-        return id;
+    @ManyToOne
+    private Agent agent;
+
+    public Agent getAgent() {
+        return agent;
     }
 
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
+    public void setAgent(Agent agent) {
+        this.agent = agent;
     }
 
     @Override
     public String toString() {
         return "Author{" +
-                "name='" + name + '\'' +
+                " name='" + getName() + '\'' +
+                ", agent=" + agent +
                 '}';
     }
 }

@@ -1,13 +1,13 @@
 package sda.db.hibernate;
 
-import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
-import org.hibernate.query.Query;
-import sda.db.hibernate.entity.Album;
-import sda.db.hibernate.entity.Author;
-import sda.db.hibernate.entity.Song;
+import sda.db.hibernate.entity.*;
+import sda.db.hibernate.entity.util.AgentId;
+import sda.db.hibernate.repository.AgentRepository;
+import sda.db.hibernate.repository.AlbumRepository;
+import sda.db.hibernate.repository.AuthorRepository;
+import sda.db.hibernate.repository.SongRepository;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
@@ -22,9 +22,14 @@ public class Project {
                 .addAnnotatedClass(Album.class)
                 .addAnnotatedClass(Author.class)
                 .addAnnotatedClass(Song.class)
+                .addAnnotatedClass(Agent.class)
                 .buildSessionFactory();
 // HQL query
         EntityManager em = sessionFactory.createEntityManager();
+        SongRepository songRepository = new SongRepository(em);
+        AgentRepository agentRepository = new AgentRepository(em);
+        AuthorRepository authorRepository = new AuthorRepository(em);
+        AlbumRepository albumRepository = new AlbumRepository(em);
 
         EntityTransaction t = em.getTransaction();
 
@@ -34,8 +39,6 @@ public class Project {
         author.setName("Super Author");
 
         Song songD = new Song("song D", author, 220, Instant.now());
-        songD.setName("song D");
-        songD.setAuthor(author);
 
         Album albumA = createAlbumA(author);
         albumA.addSong(songD);
@@ -43,24 +46,47 @@ public class Project {
         Album albumB = createAlbumB(author);
         albumB.addSong(songD);
 
-        em.persist(author);
+        Agent agent = new Agent();
+        agent.setId(new AgentId("Vardenis","Pavardenis"));
+        agent.setActiveSince(Instant.now());
+        author.setAgent(agent);
 
-        em.persist(albumA);
-        em.persist(albumB);
+        em.persist(agent);
+        authorRepository.save(author);
+        albumRepository.save(albumA);
+        albumRepository.save(albumB);
+
 
         t.commit();
 
-        List<Song> songs = em.createQuery("FROM Song s", Song.class).getResultList();
+        System.out.println("=========");
+        List<Song> songs = songRepository.findALL();
         songs.forEach(System.out::println);
-
-        List<Album> albums = em.createQuery("FROM Album", Album.class).getResultList();
+        System.out.println("=========");
+        Song songA = songs.stream().findFirst().get();
+        songA.setLyrics("some other lyrics");
+        songRepository.save(songA);
+        System.out.println(songRepository.find(songA.getId()));
+        songRepository.delete(songA);
+        System.out.println(songRepository.find(songA.getId()));
+        System.out.println("=========");
+        System.out.println("=========");
+        List<Album> albums = albumRepository.findALL();
         albums.forEach(System.out::println);
+        System.out.println("=========");
+        System.out.println("=========");
+        System.out.println(agentRepository.find("Vardenis", "Pavardenis"));
+        System.out.println("=========");
+        List<Author>authors = authorRepository.findALL();
+        authors.forEach(System.out::println);
+        System.out.println("=========");
 
 
     }
 
     private Album createAlbumA(Author author) {
         Song songA = new Song("song A", author, 195, Instant.now());
+        songA.setLyrics("Some lyrics");
 
         Song songB = new Song("song B", author, 195, Instant.now());
 
@@ -74,14 +100,13 @@ public class Project {
     }
 
         private Album createAlbumB(Author author) {
-            Song songA = new Song("song C", author, 241, Instant.now());
-            songA.setName("song C");
-            songA.setAuthor(author);
+            Song songC = new Song("song C", author, 241, Instant.now());
+
 
             Album album = new Album();
             album.setName("New Album");
             album.setAuthor(author);
-            album.addSong(songA);
+            album.addSong(songC);
 
             return album;
     }
